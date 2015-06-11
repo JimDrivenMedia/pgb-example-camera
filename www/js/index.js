@@ -60,3 +60,39 @@ var app = {
       });
     }
 };
+var db;
+var transaction;
+$(document).ready(function() {
+       db = window.openDatabase("PagesDB", "1.0", "PhoneGap Demo", 200000);
+        db.transaction(function (tx) {  
+        tx.executeSql('DROP TABLE IF EXISTS pages');
+	var sql = 
+		"CREATE TABLE IF NOT EXISTS pages ( "+
+		"id varchar(50) PRIMARY KEY, " +
+		"pagetitle VARCHAR(255), " +
+		"pageContents VARCHAR(8000), " +
+		"pageActive VARCHAR(1), " +
+		"lastupdated varchar(50), " + 
+		"lastupdatedusername VARCHAR(50))";
+        tx.executeSql(sql);
+        });
+        loadJson();
+        console.log('foo');
+    });
+    
+function loadJson(){
+    $.getJSON( "https://mercury.hamilton.edu:7075/appPages/ajax/getpages.cfm", function( data ) { 
+        db.transaction(function (transaction) {
+            var len = data.length;
+            for(var i = 0; i < len; i++) {
+                var id=data[i].id;
+                var pagetitle=data[i].pagetitle;           
+                var pagecontent=data[i].pagecontent;  
+                var pageactive=data[i].pageactive; 
+                var lastupdated=data[i].lastupdated; 
+                var lastupdatedusername=data[i].lastupdatedusername; 
+                transaction.executeSql('INSERT INTO pages (id,pagetitle, pagecontent, pageaActive, lastupdated, lastupdatedusername) VALUES (?,?,?,?,?,?)',[id, pagetitle, pagecontent, pageactive, lastupdated,lastupdatedusername]);
+            }
+        });
+    });
+};
